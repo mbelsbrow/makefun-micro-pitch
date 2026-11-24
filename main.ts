@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 // Rationale: this line wins against the five criteria because it names an
 // absurdly specific niche — a service that leaves exactly one "LGTM" comment
@@ -20,3 +20,13 @@ if (LINE.includes("\n") || LINE.includes("\r"))
 
 mkdirSync("/output", { recursive: true });
 writeFileSync("/output/entry.txt", LINE, "utf8");
+
+// Read-back verification: a silent write failure must not pass quietly.
+// Re-read the file and confirm it holds exactly the intended entry line.
+const roundTripped = readFileSync("/output/entry.txt", "utf8");
+if (roundTripped !== LINE)
+  throw new Error("read-back verification failed: entry.txt does not match LINE");
+if (!roundTripped.trim())
+  throw new Error("read-back verification failed: entry.txt is empty");
+if (roundTripped.length > MAX_CHARS)
+  throw new Error(`read-back verification failed: entry.txt exceeds ${MAX_CHARS} characters`);
